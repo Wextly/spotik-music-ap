@@ -1,0 +1,47 @@
+[
+    {
+        "id": 2004,
+        "title": "8 миля",
+        "artist": "madk1d",
+        "language": "EN",
+        "cover": "https://i.scdn.co/image/ab67616d0000b2736c37e2df7d6a120e0b4dcc69",
+        "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        "duration": "03:00"
+    },
+    {
+        "id": 2003,
+        "title": "КРИЛА ЛЕЛЕКИ",
+        "artist": "Нікіта Кісельов",
+        "language": "EN",
+        "cover": "https://i.scdn.co/image/ab67616d0000b273e5f8f7a9cb6a2fecb6d84dfe",
+        "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        "duration": "03:00"
+    },
+    {
+        "id": 2002,
+        "title": "Червоний мак",
+        "artist": "Kolibri",
+        "language": "EN",
+        "cover": "https://i.scdn.co/image/ab67616d0000b273f11c6591539f00f15400e828",
+        "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        "duration": "03:00"
+    },
+    {
+        "id": 2001,
+        "title": "Дві весни",
+        "artist": "Jerry Heil",
+        "language": "EN",
+        "cover": "https://i.scdn.co/image/ab67616d0000b273cc29bae43e17b5485ae8f42e",
+        "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        "duration": "03:00"
+    },
+    {
+        "id": 2000,
+        "title": "ДИНАСТИЯ",
+        "artist": "VILLIAN",
+        "language": "EN",
+        "cover": "https://i.scdn.co/image/ab67616d0000b273f49aca7a14ea9f19f664a7ca",
+        "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        "duration": "03:00"
+    }
+]
