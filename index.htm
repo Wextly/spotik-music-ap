@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotik — Твой музыкальный мир</title>
-    <!-- Подключаем Telegram Web App скрипт -->
+    <title>Spotik — Музыкальный Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -16,52 +15,53 @@
         body {
             background-color: #121212;
             color: #ffffff;
-            padding-bottom: 90px; /* Отступ снизу для плеера */
+            padding-bottom: 100px;
         }
         header {
             padding: 16px;
-            background: #121212;
+            background: #181818;
             position: sticky;
             top: 0;
             z-index: 10;
+            border-bottom: 1px solid #282828;
         }
         h1 {
             font-size: 22px;
-            font-weight: 700;
             margin-bottom: 12px;
             color: #1db954;
         }
-        /* Стили поисковой строки */
-        .search-container {
-            margin-bottom: 8px;
-        }
-        #searchInput {
+        .search-box {
             width: 100%;
             padding: 12px 16px;
-            border-radius: 20px;
+            border-radius: 24px;
             border: none;
-            background: #282828;
-            color: #fff;
-            font-size: 14px;
+            background: #242424;
+            color: #ffffff;
+            font-size: 15px;
             outline: none;
         }
-        #searchInput::placeholder {
+        .search-box::placeholder {
             color: #b3b3b3;
         }
-        /* Список треков */
         .playlist {
-            padding: 0 16px;
+            padding: 12px;
         }
         .track-item {
             display: flex;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #282828;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: #181818;
             cursor: pointer;
             transition: background 0.2s;
         }
         .track-item:active {
-            background: #1e1e1e;
+            background: #282828;
+        }
+        .track-item.active {
+            border-left: 4px solid #1db954;
+            background: #222222;
         }
         .track-cover {
             width: 50px;
@@ -69,7 +69,7 @@
             border-radius: 6px;
             object-fit: cover;
             margin-right: 12px;
-            background: #282828;
+            background: #333;
         }
         .track-info {
             flex-grow: 1;
@@ -77,7 +77,7 @@
         }
         .track-title {
             font-size: 15px;
-            font-weight: 600;
+            font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -90,30 +90,29 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        /* Нижний плеер */
         .player-bar {
             position: fixed;
             bottom: 0;
             left: 0;
-            right: 0;
-            background: #181818;
-            border-top: 1px solid #282828;
+            width: 100%;
+            background: #282828;
+            border-top: 1px solid #3e3e3e;
             padding: 12px 16px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            z-index: 100;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
         }
         .player-cover {
-            width: 44px;
-            height: 44px;
-            border-radius: 4px;
+            width: 45px;
+            height: 45px;
+            border-radius: 6px;
             object-fit: cover;
-            background: #282828;
+            margin-right: 12px;
         }
         .player-info {
             flex-grow: 1;
             overflow: hidden;
+            margin-right: 12px;
         }
         .player-title {
             font-size: 14px;
@@ -132,11 +131,11 @@
         .play-btn {
             background: #1db954;
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            color: #fff;
-            font-size: 16px;
+            color: white;
+            font-size: 18px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -146,7 +145,7 @@
             text-align: center;
             color: #b3b3b3;
             margin-top: 40px;
-            font-size: 14px;
+            font-size: 15px;
         }
     </style>
 </head>
@@ -154,140 +153,69 @@
 
     <header>
         <h1>Spotik</h1>
-        <div class="search-container">
-            <!-- Поисковая строка -->
-            <input type="text" id="searchInput" placeholder="Что хочешь послушать? (Трек или автор)..." oninput="filterSongs()">
-        </div>
+        <input type="text" id="searchInput" class="search-box" placeholder="Поиск треков или исполнителей...">
     </header>
 
-    <div class="playlist" id="playlistContainer">
-        <div class="empty-message">Загрузка музыки...</div>
+    <div class="playlist" id="playlist">
+        <div class="empty-message">⏳ Загрузка музыки...</div>
     </div>
 
-    <!-- Фиксированный музыкальный плеер снизу -->
     <div class="player-bar" id="playerBar" style="display: none;">
-        <img src="" alt="" class="player-cover" id="playerCover">
+        <img id="playerCover" class="player-cover" src="" alt="">
         <div class="player-info">
-            <div class="player-title" id="playerTitle">Выберите трек</div>
-            <div class="player-artist" id="playerArtist">-</div>
+            <div id="playerTitle" class="player-title">Название</div>
+            <div id="playerArtist" class="player-artist">Исполнитель</div>
         </div>
-        <button class="play-btn" id="playPauseBtn" onclick="togglePlay()">▶</button>
+        <button id="playPauseBtn" class="play-btn">⏸</button>
     </div>
 
-    <audio id="audioPlayer" onended="onTrackEnded()"></audio>
+    <audio id="audioPlayer"></audio>
 
     <script>
-        // Инициализация Telegram Web App
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-
-        let allSongs = [];     // Полная база треков, загруженная из songs.json
-        let currentTrackIndex = 0;
+        let allSongs = [];
+        let currentTrackIndex = null;
         let isPlaying = false;
 
+        const playlistContainer = document.getElementById('playlist');
+        const searchInput = document.getElementById('searchInput');
         const audioPlayer = document.getElementById('audioPlayer');
-        const playPauseBtn = document.getElementById('playPauseBtn');
         const playerBar = document.getElementById('playerBar');
         const playerCover = document.getElementById('playerCover');
         const playerTitle = document.getElementById('playerTitle');
         const playerArtist = document.getElementById('playerArtist');
-        const playlistContainer = document.getElementById('playlistContainer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
 
-        // Загружаем songs.json с репозитория GitHub Pages
-        fetch('songs.json')
-            .then(response => response.json())
+        // Загружаем songs.json с защитой от кэширования
+        fetch('songs.json?v=' + new Date().getTime())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Файл songs.json не найден (статус ' + response.status + ')');
+                }
+                return response.json();
+            })
             .then(data => {
                 allSongs = data;
-                displaySongs(allSongs);
+                if (allSongs.length === 0) {
+                    playlistContainer.innerHTML = '<div class="empty-message">База треков пуста! Запусти updater.py</div>';
+                } else {
+                    displaySongs(allSongs);
+                }
             })
             .catch(error => {
                 console.error('Ошибка загрузки songs.json:', error);
-                playlistContainer.innerHTML = '<div class="empty-message">Не удалось загрузить треки. Запусти updater.py!</div>';
-            });
-
-        // Функция отрисовки списка песен на экране
-        function displaySongs(songsArray) {
-            if (songsArray.length === 0) {
-                playlistContainer.innerHTML = '<div class="empty-message">Ничего не найдено 😔</div>';
-                return;
-            }
-
-            let html = '';
-            songsArray.forEach((song, index) => {
-                // Ищем реальный индекс трека в общем массиве allSongs для корректного воспроизведения
-                let originalIndex = allSongs.findIndex(s => s.id === song.id);
-                if (originalIndex === -1) originalIndex = index;
-
-                html += `
-                    <div class="track-item" onclick="playTrack(${originalIndex})">
-                        <img src="${song.cover || 'https://via.placeholder.com/50'}" alt="" class="track-cover">
-                        <div class="track-info">
-                            <div class="track-title">${escapeHtml(song.title)}</div>
-                            <div class="track-artist">${escapeHtml(song.artist)}</div>
-                        </div>
+                playlistContainer.innerHTML = `
+                    <div class="empty-message" style="padding: 20px;">
+                        <p style="color: #ff5555; margin-bottom: 10px;">❌ Ошибка загрузки базы треков</p>
+                        <p style="font-size: 12px; color: #b3b3b3;">Убедись, что файл <b>songs.json</b> находится в репозитории.</p>
                     </div>
                 `;
             });
-            playlistContainer.innerHTML = html;
-        }
 
-        // Функция поиска по названию трека или имени автора
-        function filterSongs() {
-            let query = document.getElementById('searchInput').value.toLowerCase().trim();
-            
-            let filtered = allSongs.filter(song => 
-                song.title.toLowerCase().includes(query) || 
-                song.artist.toLowerCase().includes(query)
-            );
-            
-            displaySongs(filtered);
-        }
-
-        // Запуск воспроизведения трека по клику
-        function playTrack(index) {
-            currentTrackIndex = index;
-            let song = allSongs[currentTrackIndex];
-
-            audioPlayer.src = song.url;
-            audioPlayer.play().then(() => {
-                isPlaying = true;
-                playPauseBtn.textContent = '⏸';
-                playerBar.style.display = 'flex';
-                playerCover.src = song.cover || '';
-                playerTitle.textContent = song.title;
-                playerArtist.textContent = song.artist;
-            }).catch(e => {
-                console.error("Ошибка воспроизведения аудио:", e);
-            });
-        }
-
-        // Кнопка Пауза / Воспроизведение в плеере
-        function togglePlay() {
-            if (isPlaying) {
-                audioPlayer.pause();
-                isPlaying = false;
-                playPauseBtn.textContent = '▶';
-            } else {
-                audioPlayer.play();
-                isPlaying = true;
-                playPauseBtn.textContent = '⏸';
+        // Функция отрисовки списка треков
+        function displaySongs(songs) {
+            if (songs.length === 0) {
+                playlistContainer.innerHTML = '<div class="empty-message">Ничего не найдено 😢</div>';
+                return;
             }
-        }
 
-        // Автоматический переход к следующему треку по окончании
-        function onTrackEnded() {
-            if (currentTrackIndex < allSongs.length - 1) {
-                playTrack(currentTrackIndex + 1);
-            } else {
-                playTrack(0); // Зацикливание на первый трек
-            }
-        }
-
-        // Защита от поломки верстки спецсимволами
-        function escapeHtml(text) {
-            if (!text) return '';
-            return text.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """).replace(/'/g, "'");
-        }
-    </script>
-</body>
-</html>
+            playlist
