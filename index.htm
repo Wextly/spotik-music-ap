@@ -3,203 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Mini App</title>
-    <!-- Подключаем Telegram Web App SDK -->
+    <title>Spotik — Твой музыкальный мир</title>
+    <!-- Подключаем Telegram Web App скрипт -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Tailwind CSS для быстрого и красивого дизайна -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
         body {
-            background-color: #0f0c1b;
+            background-color: #121212;
             color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding-bottom: 90px; /* Отступ снизу для плеера */
         }
-        /* Кастомный фиолетовый скроллбар */
-        ::-webkit-scrollbar {
-            width: 4px;
+        header {
+            padding: 16px;
+            background: #121212;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #7b2cbf;
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1db954;
+        }
+        /* Стили поисковой строки */
+        .search-container {
+            margin-bottom: 8px;
+        }
+        #searchInput {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 20px;
+            border: none;
+            background: #282828;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        #searchInput::placeholder {
+            color: #b3b3b3;
+        }
+        /* Список треков */
+        .playlist {
+            padding: 0 16px;
+        }
+        .track-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #282828;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .track-item:active {
+            background: #1e1e1e;
+        }
+        .track-cover {
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
+            object-fit: cover;
+            margin-right: 12px;
+            background: #282828;
+        }
+        .track-info {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .track-title {
+            font-size: 15px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .track-artist {
+            font-size: 13px;
+            color: #b3b3b3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* Нижний плеер */
+        .player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #181818;
+            border-top: 1px solid #282828;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+        }
+        .player-cover {
+            width: 44px;
+            height: 44px;
             border-radius: 4px;
+            object-fit: cover;
+            background: #282828;
+        }
+        .player-info {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .player-title {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .player-artist {
+            font-size: 12px;
+            color: #b3b3b3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .play-btn {
+            background: #1db954;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .empty-message {
+            text-align: center;
+            color: #b3b3b3;
+            margin-top: 40px;
+            font-size: 14px;
         }
     </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden select-none">
+<body>
 
-    <!-- Верхняя шапка -->
-    <header class="flex items-center justify-between px-4 py-3 bg-[#130f23] border-b border-[#241a42]">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7b2cbf] to-[#c77dff] flex items-center justify-center font-bold text-lg shadow-lg shadow-purple-900/50" id="user-avatar">
-                🎵
-            </div>
-            <div>
-                <h1 class="text-sm font-bold text-purple-200" id="user-name">Медиатека</h1>
-                <p class="text-xs text-purple-400">Бесплатный Spotify</p>
-            </div>
+    <header>
+        <h1>Spotik</h1>
+        <div class="search-container">
+            <!-- Поисковая строка -->
+            <input type="text" id="searchInput" placeholder="Что хочешь послушать? (Трек или автор)..." oninput="filterSongs()">
         </div>
-        <button onclick="alert('Все треки бесплатны и доступны без подписки!')" class="text-purple-400 hover:text-purple-200 text-xs bg-[#241a42] px-3 py-1.5 rounded-full border border-[#7b2cbf]/40">
-            ✨ Premium Free
-        </button>
     </header>
 
-    <!-- Основной контент (Вкладки) -->
-    <main class="flex-1 overflow-y-auto pb-32">
-        <!-- Вкладка: Главная -->
-        <div id="tab-home" class="p-4 space-y-6">
-            <!-- Приветствие -->
-            <div>
-                <h2 class="text-xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-[#c77dff]">
-                    Добрый вечер, меломан
-                </h2>
-                <p class="text-xs text-purple-400 mt-1">Твоя подборка на сегодня</p>
-            </div>
-
-            <!-- Главный баннер-плейлист -->
-            <div onclick="playTrack(0)" class="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#3c096c] to-[#5a189a] p-4 shadow-xl shadow-purple-950/40 cursor-pointer border border-[#c77dff]/20">
-                <div class="absolute -right-4 -bottom-4 text-7xl opacity-20">🎧</div>
-                <span class="text-[10px] uppercase tracking-wider bg-black/30 px-2 py-0.5 rounded text-purple-300 font-semibold">Плейлист дня</span>
-                <h3 class="text-lg font-bold mt-2 text-white">Фиолетовый Неон</h3>
-                <p class="text-xs text-purple-200 mt-0.5">Synthwave, Lofi & Indie Hits</p>
-            </div>
-
-            <!-- Список треков (Быстрый доступ) -->
-            <div>
-                <h3 class="text-sm font-bold text-purple-300 mb-3">Популярные треки</h3>
-                <div class="space-y-2" id="tracks-list">
-                    <!-- Заполняется через JS -->
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Плеер внизу (Mini Player) -->
-    <div id="mini-player" class="absolute bottom-16 left-2 right-2 bg-[#1b1335] border border-[#7b2cbf]/40 rounded-2xl p-3 flex items-center justify-between shadow-2xl backdrop-blur-md">
-        <div class="flex items-center space-x-3 overflow-hidden cursor-pointer" onclick="openFullPlayer()">
-            <div class="w-12 h-12 rounded-xl bg-purple-900 flex-shrink-0 flex items-center justify-center text-xl shadow-inner shadow-black" id="current-cover">
-                🎵
-            </div>
-            <div class="truncate">
-                <h4 class="text-xs font-bold text-white truncate" id="current-title">Выберите трек</h4>
-                <p class="text-[10px] text-purple-300 truncate" id="current-artist">Исполнитель</p>
-            </div>
-        </div>
-        <div class="flex items-center space-x-2">
-            <button onclick="togglePlay()" id="play-btn" class="w-10 h-10 rounded-full bg-[#9d4edd] text-white flex items-center justify-center shadow-md shadow-purple-900/50 hover:bg-[#c77dff] transition">
-                ▶
-            </button>
-        </div>
+    <div class="playlist" id="playlistContainer">
+        <div class="empty-message">Загрузка музыки...</div>
     </div>
 
-    <!-- Нижняя навигация (Меню) -->
-    <nav class="absolute bottom-0 left-0 right-0 h-16 bg-[#100c1e] border-t border-[#241a42] flex items-center justify-around px-6 text-xs text-purple-400">
-        <button onclick="switchTab('home')" class="flex flex-col items-center text-[#c77dff]">
-            <span class="text-lg">🏠</span>
-            <span class="mt-0.5 font-medium">Главная</span>
-        </button>
-        <button onclick="alert('Поиск треков и жанров')" class="flex flex-col items-center hover:text-purple-200">
-            <span class="text-lg">🔍</span>
-            <span class="mt-0.5 font-medium">Поиск</span>
-        </button>
-        <button onclick="alert('Ваша медиатека пуста')" class="flex flex-col items-center hover:text-purple-200">
-            <span class="text-lg">📚</span>
-            <span class="mt-0.5 font-medium">Моя музыка</span>
-        </button>
-    </nav>
+    <!-- Фиксированный музыкальный плеер снизу -->
+    <div class="player-bar" id="playerBar" style="display: none;">
+        <img src="" alt="" class="player-cover" id="playerCover">
+        <div class="player-info">
+            <div class="player-title" id="playerTitle">Выберите трек</div>
+            <div class="player-artist" id="playerArtist">-</div>
+        </div>
+        <button class="play-btn" id="playPauseBtn" onclick="togglePlay()">▶</button>
+    </div>
 
-    <!-- Скрытый HTML5 аудио элемент -->
-    <audio id="audio-element" preload="auto"></audio>
+    <audio id="audioPlayer" onended="onTrackEnded()"></audio>
 
     <script>
-        // Инициализация Telegram WebApp
-        const tg = window.Telegram.WebApp;
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Подставляем имя из телеграма, если доступно
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            const user = tg.initDataUnsafe.user;
-            document.getElementById('user-name').innerText = user.first_name;
-            if (user.first_name) {
-                document.getElementById('user-avatar').innerText = user.first_name[0].toUpperCase();
-            }
-        }
-
-        // Список треков (бесплатная музыка из открытых источников)
-        const playlist = [
-            {
-                title: "Midnight Cyberpunk",
-                artist: "Neon Dreams",
-                cover: "🌆",
-                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-            },
-            {
-                title: "Purple Sunset",
-                artist: "Synth Rider",
-                cover: "💜",
-                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-            },
-            {
-                title: "Digital Rain",
-                artist: "Lofi hacker",
-                cover: "🌧️",
-                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-            }
-        ];
-
-        let currentIndex = 0;
+        let allSongs = [];     // Полная база треков, загруженная из songs.json
+        let currentTrackIndex = 0;
         let isPlaying = false;
-        const audioElement = document.getElementById('audio-element');
 
-        // Рендер треков в списке
-        function renderTracks() {
-            const container = document.getElementById('tracks-list');
-            container.innerHTML = '';
-            playlist.forEach((track, index) => {
-                container.innerHTML += `
-                    <div onclick="playTrack(${index})" class="flex items-center justify-between p-2.5 rounded-xl bg-[#161029] hover:bg-[#20173d] transition cursor-pointer border border-[#7b2cbf]/10">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-lg bg-purple-950 flex items-center justify-center text-lg">${track.cover}</div>
-                            <div>
-                                <h4 class="text-xs font-bold text-white">${track.title}</h4>
-                                <p class="text-[10px] text-purple-400">${track.artist}</p>
-                            </div>
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playerBar = document.getElementById('playerBar');
+        const playerCover = document.getElementById('playerCover');
+        const playerTitle = document.getElementById('playerTitle');
+        const playerArtist = document.getElementById('playerArtist');
+        const playlistContainer = document.getElementById('playlistContainer');
+
+        // Загружаем songs.json с репозитория GitHub Pages
+        fetch('songs.json')
+            .then(response => response.json())
+            .then(data => {
+                allSongs = data;
+                displaySongs(allSongs);
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки songs.json:', error);
+                playlistContainer.innerHTML = '<div class="empty-message">Не удалось загрузить треки. Запусти updater.py!</div>';
+            });
+
+        // Функция отрисовки списка песен на экране
+        function displaySongs(songsArray) {
+            if (songsArray.length === 0) {
+                playlistContainer.innerHTML = '<div class="empty-message">Ничего не найдено 😔</div>';
+                return;
+            }
+
+            let html = '';
+            songsArray.forEach((song, index) => {
+                // Ищем реальный индекс трека в общем массиве allSongs для корректного воспроизведения
+                let originalIndex = allSongs.findIndex(s => s.id === song.id);
+                if (originalIndex === -1) originalIndex = index;
+
+                html += `
+                    <div class="track-item" onclick="playTrack(${originalIndex})">
+                        <img src="${song.cover || 'https://via.placeholder.com/50'}" alt="" class="track-cover">
+                        <div class="track-info">
+                            <div class="track-title">${escapeHtml(song.title)}</div>
+                            <div class="track-artist">${escapeHtml(song.artist)}</div>
                         </div>
-                        <span class="text-purple-400 text-xs">▶</span>
                     </div>
                 `;
             });
+            playlistContainer.innerHTML = html;
         }
 
-        function playTrack(index) {
-            currentIndex = index;
-            const track = playlist[index];
+        // Функция поиска по названию трека или имени автора
+        function filterSongs() {
+            let query = document.getElementById('searchInput').value.toLowerCase().trim();
             
-            document.getElementById('current-title').innerText = track.title;
-            document.getElementById('current-artist').innerText = track.artist;
-            document.getElementById('current-cover').innerText = track.cover;
-
-            audioElement.src = track.url;
-            audioElement.play();
-            isPlaying = true;
-            document.getElementById('play-btn').innerText = "⏸";
+            let filtered = allSongs.filter(song => 
+                song.title.toLowerCase().includes(query) || 
+                song.artist.toLowerCase().includes(query)
+            );
+            
+            displaySongs(filtered);
         }
 
-        function togglePlay() {
-            if (!audioElement.src) {
-                playTrack(0);
-                return;
-            }
-            if (isPlaying) {
-                audioElement.pause();
-                isPlaying = false;
-                document.getElementById('play-btn').innerText = "▶";
-            } else {
-                audioElement.play();
+        // Запуск воспроизведения трека по клику
+        function playTrack(index) {
+            currentTrackIndex = index;
+            let song = allSongs[currentTrackIndex];
+
+            audioPlayer.src = song.url;
+            audioPlayer.play().then(() => {
                 isPlaying = true;
-                document.getElementById('play-btn').innerText = "⏸";
+                playPauseBtn.textContent = '⏸';
+                playerBar.style.display = 'flex';
+                playerCover.src = song.cover || '';
+                playerTitle.textContent = song.title;
+                playerArtist.textContent = song.artist;
+            }).catch(e => {
+                console.error("Ошибка воспроизведения аудио:", e);
+            });
+        }
+
+        // Кнопка Пауза / Воспроизведение в плеере
+        function togglePlay() {
+            if (isPlaying) {
+                audioPlayer.pause();
+                isPlaying = false;
+                playPauseBtn.textContent = '▶';
+            } else {
+                audioPlayer.play();
+                isPlaying = true;
+                playPauseBtn.textContent = '⏸';
             }
         }
 
-        renderTracks();
+        // Автоматический переход к следующему треку по окончании
+        function onTrackEnded() {
+            if (currentTrackIndex < allSongs.length - 1) {
+                playTrack(currentTrackIndex + 1);
+            } else {
+                playTrack(0); // Зацикливание на первый трек
+            }
+        }
+
+        // Защита от поломки верстки спецсимволами
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """).replace(/'/g, "'");
+        }
     </script>
 </body>
 </html>
