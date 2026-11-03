@@ -52,9 +52,9 @@
 
     <script>
         let allSongs = [];
-        let displayedCount = 50; // Порция для отображения
+        let displayedCount = 50;
         let currentFilteredSongs = [];
-        let currentTrackIndex = null;
+        let currentPlayingSongId = null;
         let isPlaying = false;
 
         const playlistContainer = document.getElementById('playlist');
@@ -66,7 +66,6 @@
         const playerArtist = document.getElementById('playerArtist');
         const playPauseBtn = document.getElementById('playPauseBtn');
 
-        // Загружаем songs.json
         fetch('songs.json?v=' + Date.now())
             .then(res => res.json())
             .then(data => {
@@ -91,14 +90,13 @@
 
             const chunk = currentFilteredSongs.slice(0, displayedCount);
             
-            // Удаляем старую кнопку "Загрузить еще", если она есть
             const oldBtn = document.getElementById('loadMoreBtn');
             if (oldBtn) oldBtn.remove();
 
             chunk.forEach(song => {
                 const item = document.createElement('div');
                 item.className = 'track-item';
-                if (currentTrackIndex !== null && allSongs[currentTrackIndex]?.id === song.id) {
+                if (currentPlayingSongId === song.id) {
                     item.classList.add('active');
                 }
                 
@@ -113,7 +111,6 @@
                 playlistContainer.appendChild(item);
             });
 
-            // Если есть еще треки для показа — добавляем кнопку подгрузки
             if (displayedCount < currentFilteredSongs.length) {
                 const loadMoreBtn = document.createElement('button');
                 loadMoreBtn.id = 'loadMoreBtn';
@@ -127,7 +124,6 @@
             }
         }
 
-        // Поиск сбросит пагинацию на первую порцию
         searchInput.oninput = (e) => {
             const query = e.target.value.toLowerCase().trim();
             displayedCount = 50;
@@ -143,7 +139,7 @@
         };
 
         function playTrack(song) {
-            currentTrackIndex = allSongs.findIndex(s => s.id === song.id);
+            currentPlayingSongId = song.id;
             audioPlayer.src = song.url;
             audioPlayer.play().then(() => {
                 isPlaying = true;
@@ -155,7 +151,7 @@
             playerArtist.innerText = song.artist;
             playerBar.style.display = 'flex';
             
-            renderSongs(); // Обновляем подсветку активного трека
+            renderSongs();
         }
 
         playPauseBtn.onclick = () => {
@@ -171,8 +167,9 @@
         };
 
         audioPlayer.onended = () => {
-            if (currentTrackIndex !== null && currentTrackIndex < allSongs.length - 1) {
-                playTrack(allSongs[currentTrackIndex + 1]);
+            const currentIndex = currentFilteredSongs.findIndex(s => s.id === currentPlayingSongId);
+            if (currentIndex !== -1 && currentIndex < currentFilteredSongs.length - 1) {
+                playTrack(currentFilteredSongs[currentIndex + 1]);
             }
         };
     </script>
